@@ -25,7 +25,9 @@
 
 `version2`文件夹中APP支持音频录制、暂停继续录制和查看文件列表功能
 
-`finalversion`文件夹中APP支持音频录制、暂停继续录制、查看文件列表、删除文件列表中某个文件以及播放文件列表中某个音频文件的功能
+`version3`文件夹中APP支持音频录制、暂停继续录制、查看文件列表、删除文件列表中某个文件以及播放文件列表中某个音频文件的功能
+
+`version4`文件夹中APP支持音频录制、暂停继续录制、查看文件列表、播放文件列表中某个音频文件的功能以及在文件列表中长按某个音频文件选择删除或者分享到其他手机应用上
 
 ![image-20210123002002071](./pic/pic1.png)
 
@@ -585,5 +587,184 @@ startActivity(it);
 finish();
 ```
 
+### 3.9 分享录制好的音频文件到其他应用(比如QQ，微信)
 
+**Android7.0以上推荐使用`FileProvider`**
 
+#### **Step 1:在AndroidManifest.xml中\<application\>标签下声明一个provider**
+
+```xml
+<provider
+    android:authorities="com.example.myaudiorecorder.fileprovider"
+    android:name="androidx.core.content.FileProvider"
+    android:grantUriPermissions="true"
+    android:exported="false">
+    <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/filepaths"/>
+</provider>
+```
+
+注意：
+**authorities**：app的包名.fileProvider，我的app包就是`com.example.myaudiorecorder`
+**grantUriPermissions**：必须是true，表示授予 URI 临时访问权限 
+**exported**：**true**: The provider is available to other applications. **false**: The provider is not available to other applications.
+**resource**：自定义的xml文件（下面会介绍）
+
+#### Step2:在res目录下新建一个xml文件夹，并且新建一个file_paths的xml文件
+
+![image-20210124235221896](./pic/pic3.png)
+
+#### Step3:打开file_paths.xml文件，添加指定的分享目录
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path path="ARecordFiles" name="ARecordFiles" />
+</paths>
+```
+
+**在paths节点内部支持以下几个子节点，分别为：**
+
+| **子节点**          | **对应路径**                              | **例子**             |
+| ------------------- | ----------------------------------------- | -------------------- |
+| files_path          | Context.getFilesDir()                     |                      |
+| cache_path          | Context.getCacheDir()                     |                      |
+| external_path       | Environment.getExternalStorageDirectory() | /storage/emulated/0/ |
+| external_files_path | Context.getExternalFilesDir()             |                      |
+| externa_cache_path  | Context.getExternalCacheDir()             |                      |
+
+我的文件路径是`Environment.getExternalStorageDirectory() `，所以paths子节点name是`external_path`。path="ARecordFiles"是我文件存放的路径，即`Environment.getExternalStorageDirectory()/ARecordFiles`，**如果路径没写对，分享的时候会报“获取资源失败”**。
+
+#### Step4:使用FileProvider的API
+
+```java
+private void share(String filename){
+        //创建要分享的文件
+        File file=new File(Environment.getExternalStorageDirectory(),"ARecordFiles/"+filename);
+        Intent share = new Intent(Intent.ACTION_SEND);
+        Uri uri;
+
+        //Android7.0版本以上使用FileProvider
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            uri = FileProvider.getUriForFile(
+                    getApplicationContext(),
+                    "com.example.myaudiorecorder.fileprovider",
+                    file);//第二个参数为你的包名.fileprovider
+        }
+        else{
+            uri = Uri.fromFile(file);
+        }
+
+        share.setType("*/*");//此处可发送多种文件
+
+        share.putExtra(Intent.EXTRA_STREAM, uri);
+
+        share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        share.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        share.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);//这一句一定得写
+
+        startActivity(share);
+    
+}
+```
+
+**核心代码为这一行：**
+
+`uri = FileProvider.getUriForFile(getApplicationContext(),"com.example.myaudiorecorder.fileprovider",file);`
+
+- 第二个参数就是我们在`androidManife.xml` 中的provider的参数`authorities`
+- 第三个参数是指定的文件File
+
+**效果展示：**
+
+<img src="./pic/pic5.jpg">
+
+### 3.10 长按listview中某个Item弹出选择菜单，选择删除或者分享文件
+
+一共有两种方法，分别是使用`ContextMenu`或`PopupMenu`
+
+**方法1：使用ContextMenu**
+
+```java
+registerForContextMenu(listView);//进行注册
+```
+
+```java
+	@Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
+        super.onCreateContextMenu(menu, v, menuInfo);
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        filename=list.get(info.position).getName();//保存选中的文件名
+        Toast.makeText(getApplicationContext(),"you choose the file : "+filename,Toast.LENGTH_SHORT).show();
+        menu.add(0,0,0,"删除");
+        menu.add(0,1,0,"分享");
+    }
+    //方法1对应
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case 0: {
+                myDialog(filename);
+                break;
+            }
+            case 1:{
+                share(filename);
+                break;
+            }
+        }
+        return true;
+    }
+```
+
+**方法2：使用PopupMenu**
+
+```java
+ 		listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                File file= list.get(position);
+                filename=file.getName();
+                Toast.makeText(getApplicationContext(),"you choose the file : "+filename,Toast.LENGTH_SHORT).show();
+
+                showPopupMenu(view);
+                return true;
+            }
+        });
+```
+
+```java
+	private void showPopupMenu(View v){
+        //定义PopupMenu对象
+        PopupMenu popupMenu = new PopupMenu(this, v);
+        //设置PopupMenu对象的布局
+        popupMenu.getMenuInflater().inflate(R.menu.menu, popupMenu.getMenu());
+        //设置PopupMenu的点击事件
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch(item.getItemId()){
+                    case R.id.deleteFile:{
+                        myDialog(filename);
+                        break;
+                    }
+                    case R.id.shareFile:{
+                        share(filename);
+                        break;
+                    }
+                }
+
+                return true;
+            }
+        });
+
+        //显示菜单
+        popupMenu.show();
+
+    }
+```
+
+**效果显示：**
+
+<img src="./pic/pic4.jpg">

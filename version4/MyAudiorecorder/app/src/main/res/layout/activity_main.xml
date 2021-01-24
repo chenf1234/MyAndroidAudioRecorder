@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/pic4"
+    >
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="文件列表"
+        android:id="@+id/wavList"
+        android:onClick="showWav"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:orientation="vertical"
+        android:gravity="center">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="音频录制界面"
+            android:textSize="30dp"
+            android:textColor="#CD661D"
+            android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/text1"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:gravity="center"
+                android:text="正在录音"
+                android:textSize="35dp"
+                android:textColor="#000000"
+                android:visibility="invisible"
+            />
+
+
+        <Chronometer
+                 android:layout_width="match_parent"
+                 android:layout_height="200dp"
+                 android:format="00:00:00"
+                 android:gravity="center"
+                 android:textSize="70dp"
+                 android:id="@+id/timer"/>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+
+
+
+        <Button
+            android:id="@+id/start"
+            android:layout_width="120dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:text="开始"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bt_shape"
+            android:textColor="#000000"
+            android:onClick="start"
+
+            >
+
+        </Button>
+        <Button
+            android:id="@+id/stop"
+            android:layout_width="120dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:textSize="20dp"
+            android:text="停止"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bt_shape"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:onClick="stop"
+            android:visibility="invisible"
+            >
+
+        </Button>
+
+    </LinearLayout>
+</LinearLayout>
