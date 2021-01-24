@@ -765,6 +765,20 @@ registerForContextMenu(listView);//进行注册
     }
 ```
 
+在`menu`文件夹下新建`menu.xml`文件
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/deleteFile" android:title="删除"></item>
+    <item android:id="@+id/shareFile" android:title="分享"></item>
+
+</menu>
+```
+
+**实验证明，ContextMenu更好，可以直接在所按下之处的正下方显示，但是PopupMenu在Item的正下方显示**
+
 **效果显示：**
 
 <img src="./pic/pic4.jpg">
+
