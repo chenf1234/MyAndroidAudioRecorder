@@ -47,6 +47,8 @@ public class AudioPlay extends AppCompatActivity {
 
         //Toast.makeText(getApplicationContext(),filename+" play",Toast.LENGTH_SHORT).show();
         player=new PlayerManager(filename,this);
+        player.set(playButton,stopButton,mess,timer);//与播放自动结束后设置状态有关
+
         music.setText("播放"+filename);
         //返回上一级
         backButton.setOnClickListener(new View.OnClickListener() {
@@ -59,7 +61,12 @@ public class AudioPlay extends AppCompatActivity {
     }
 
     public void playing(View view){
-
+        //对于state状态的调整，用于播放自动结束时，
+        //stop按钮的状态为不可见时，表示先前存在播放自动结束，需要对state进行修正
+        //因为不能直接在PlayManager中修正state
+        if(stopButton.getVisibility()==View.INVISIBLE){
+            state=0;
+        }
 
 
         stopButton.setVisibility(View.VISIBLE);//设置停止按钮可见
@@ -102,11 +109,9 @@ public class AudioPlay extends AppCompatActivity {
     public void stoping(View view){
         //首先停止录音
         player.stop();
-
-
         timer.stop();
         state=0;
-        playButton.setText("开始");
+        playButton.setText("播放");
         stopButton.setVisibility(View.INVISIBLE);//同时设置停止按钮不可见
         mess.setVisibility(View.INVISIBLE);
     }
